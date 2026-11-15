@@ -1,0 +1,44 @@
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# User uploaded files
+/uploads/*
+!/uploads/.htaccess
+!/uploads/.gitkeep
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.backup
+/logs/
+/tmp/
+
+# Database backups
+/backups/
+/database/backups/
+*.sql
+!/database/news_portal_db.sql
+*.sql.gz
+*.dump
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.swp
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Test cache
+.phpunit.result.cache
+/coverage/
