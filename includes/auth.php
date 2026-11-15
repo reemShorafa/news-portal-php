@@ -10,5 +10,10 @@ function isAdmin(): bool { return (currentUser()['role']??'')==='admin'; }
 function isEditor(): bool { return (currentUser()['role']??'')==='editor'; }
 function canManageNews(): bool { return in_array(currentUser()['role']??'', ['admin','editor','author'],true); }
 function canEditArticle(array $article): bool { $u=currentUser(); return $u && (in_array($u['role'],['admin','editor'],true) || ((int)$article['user_id']===(int)$u['id'] && in_array($article['status'],['draft','pending'],true))); }
-function loginUser(int $id): void { session_regenerate_id(true); $_SESSION['user_id']=$id; $_SESSION['last_regeneration']=time(); }
+function loginUser(int $id): void { session_regenerate_id(true); $_SESSION['user_id']=$id; $_SESSION['last_regeneration']=time(); unset($_SESSION['csrf']); }
 function logoutUser(): void { $_SESSION=[]; if(ini_get('session.use_cookies')){ $p=session_get_cookie_params(); setcookie(session_name(),'',time()-42000,$p['path'],$p['domain'],$p['secure'],$p['httponly']); } session_destroy(); }
+
+if (isLoggedIn() && time() - (int)($_SESSION['last_regeneration'] ?? 0) > 1800) {
+    session_regenerate_id(true);
+    $_SESSION['last_regeneration'] = time();
+}
