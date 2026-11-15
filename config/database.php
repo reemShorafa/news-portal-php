@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../includes/error.php';
+
 function db(): PDO
 {
     static $pdo = null;
@@ -18,8 +20,7 @@ function db(): PDO
         ]);
         return $pdo;
     } catch (PDOException $e) {
-        error_log('Database connection failed: ' . $e->getMessage());
-        http_response_code(503);
-        exit('تعذر الاتصال بقاعدة البيانات حاليًا. يرجى المحاولة لاحقًا.');
+        $requestId = logApplicationError($e, 'database_connection');
+        errorResponse(503, null, $requestId);
     }
 }

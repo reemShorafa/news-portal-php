@@ -56,8 +56,10 @@ function url(string $path = ''): string
 }
 function redirect(string $to): never { header('Location: ' . $to); exit; }
 function csrfToken(): string { if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32)); return $_SESSION['csrf']; }
-function csrfField(): string { return '<input type="hidden" name="csrf_token" value="' . e(csrfToken()) . '">'; }
-function verifyCsrf(): void { if (!isset($_POST['csrf_token']) || !hash_equals(csrfToken(), (string)$_POST['csrf_token'])) { http_response_code(403); exit('رمز الحماية غير صالح أو انتهت صلاحيته. حدّث الصفحة وحاول مجددًا.'); } }
+function csrfField(): string { return '<input type="hidden" name="csrf_token" value="' . e(csrfToken()) . '">' . submissionField('form'); }
+function verifyCsrf(): void { if (!isset($_POST['csrf_token']) || !hash_equals(csrfToken(), (string)$_POST['csrf_token'])) errorResponse(403, 'رمز الحماية غير صالح أو انتهت صلاحيته. حدّث الصفحة وحاول مجددًا.'); verifySubmission('form'); }
+function submissionField(string $scope): string { $token=bin2hex(random_bytes(24)); $_SESSION['submission_tokens'][$scope][$token]=time(); foreach($_SESSION['submission_tokens'][$scope] as $value=>$created){if($created<time()-3600)unset($_SESSION['submission_tokens'][$scope][$value]);} return '<input type="hidden" name="submission_token" value="'.e($token).'">'; }
+function verifySubmission(string $scope): void { $token=(string)($_POST['submission_token']??''); if($token===''||empty($_SESSION['submission_tokens'][$scope][$token])) errorResponse(403,'تم إرسال هذا النموذج مسبقًا أو انتهت صلاحيته. حدّث الصفحة وحاول مجددًا.'); unset($_SESSION['submission_tokens'][$scope][$token]); }
 function flash(string $type, string $message): void { $_SESSION['flash'][] = compact('type', 'message'); }
 function getFlash(): array { $items = $_SESSION['flash'] ?? []; unset($_SESSION['flash']); return $items; }
 function setting(string $key, string $default = ''): string { static $cache = []; if (array_key_exists($key, $cache)) return $cache[$key]; $s=db()->prepare('SELECT setting_value FROM settings WHERE setting_key=? LIMIT 1'); $s->execute([$key]); return $cache[$key]=(string)($s->fetchColumn() ?: $default); }
