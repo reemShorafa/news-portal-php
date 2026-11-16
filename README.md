@@ -1,4 +1,4 @@
-News Portal Project
+# News Portal Project
 
 ## 1. Project Overview
 
@@ -41,12 +41,12 @@ cd news-portal-php
 We copy the `.env.example` file to a new file named `.env`, then review the database configuration values and set suitable local passwords.
 
 In PowerShell:
-```
+```powershell
 Copy-Item .env.example .env
 ```
 
 **Step Three: Build and run the project**
-```
+```bash
 docker compose up -d --build
 ```
 
@@ -68,6 +68,8 @@ After creating the administrator account, we can log in and use the dashboard.
 
 The project uses the `.env` file to define the database connection settings.
 
+Before starting Docker, all `CHANGE_ME` values from `.env.example` must be replaced in the `.env` file. The values of `DB_PASS` and `MYSQL_APP_PASSWORD` must be identical, while `MYSQL_ROOT_PASSWORD` should be different and strong.
+
 The settings include the database server address, database name, username, and password.
 
 The website runs locally on port `8080`, while the PHP container connects to the MySQL database through Docker's internal network.
@@ -87,7 +89,7 @@ After running the project, we can make sure it works by:
 7. Trying to search for a news article.
 
 The following command can also be used to check the status of the containers:
-```
+```bash
 docker compose ps
 ```
 
@@ -96,22 +98,22 @@ If the application container appears with the status `Up` and the database appea
 ## 7. Stopping and Cleaning Up the Project
 
 To stop the containers:
-```
+```bash
 docker compose stop
 ```
 
 To run them again:
-```
+```bash
 docker compose start
 ```
 
 To stop and remove the containers while keeping the stored data:
-```
+```bash
 docker compose down
 ```
 
 The following command removes the containers and the project's Volumes, including the data stored inside them:
-```
+```bash
 docker compose down -v
 ```
 
