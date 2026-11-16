@@ -1,75 +1,66 @@
-# XAMPP and Docker compatibility notes
+# Technical Notes – Docker and GitHub
 
-## Problem
+## 1. Problems I Faced While Using Docker
 
-The application was developed under XAMPP at `http://localhost/news-portal/`, but Docker exposes the same project at `http://localhost:8080/`. Apache in the PHP container uses `/var/www/html` as its document root, and the project is mounted directly into that directory.
+### Problem 1: Virtualization and WSL 2
 
-The existing shared `url()` function in `includes/functions.php` always returned URLs beginning with `/news-portal/`. Consequently, Docker received requests such as `/news-portal/assets/css/style.css` even though the file was available at `/assets/css/style.css`, producing 404 responses. This was an application URL-generation issue, not an Apache rewrite, Docker port, or database issue.
+At the beginning of the assignment, I had difficulty running Docker Desktop on my Windows computer because of the virtualization requirements.
 
-## Existing implementation
+I needed to check the virtualization settings and WSL 2 requirements. After preparing the environment correctly, Docker Desktop started working, and I was able to build and run my containers.
 
-The project already had a centralized `url()` helper. Public and administration headers/footers, navigation links, search actions, article/category links, login/logout flows, post-action redirects, uploaded-image URLs, and administration links use this helper. `imageUrl()` also delegates to `url()` for uploaded images. Forms without an explicit `action` submit to their current URL and therefore already work in either deployment.
+From this problem, I learned that Docker needs more than just the project files. The computer must also have the correct environment and settings.
 
-## Solution
+### Problem 2: PHP Container Stopping (Exited 255)
 
-`includes/functions.php` now derives the application base path once from the project directory relative to the web server's `DOCUMENT_ROOT`:
+While working on the project, I noticed that the PHP container had stopped with an `Exited (255)` status.
 
-- XAMPP: project `C:/xampp/htdocs/news-portal` relative to document root `C:/xampp/htdocs` gives `/news-portal`.
-- Docker: project `/var/www/html` equals document root `/var/www/html`, giving an empty base path.
+I checked the Docker logs, reviewed the application setup, and rebuilt and tested the containers. After the changes, the problem did not appear again during testing.
 
-The existing `url()` helper appends paths to that detected base. A fallback uses the executing script URL for unusual Apache alias configurations. This retains the existing centralized design, requires no per-environment source edits or new dependencies, and avoids duplicating URL logic throughout the project.
+I could not confirm the exact reason for exit code 255, but this experience taught me how to use Docker logs and container status commands when something goes wrong.
 
-No Dockerfile or Compose changes were necessary. No database schema, records, or volumes were changed or removed.
+### Problem 3: CSS and JavaScript Files Returning 404
 
-## Verification performed on 2026-11-15
+After running my project in Docker, the homepage loaded, but some CSS and JavaScript files were not loading correctly.
 
-### Docker
+The problem happened because the application used different paths in XAMPP and Docker.
 
-- `docker compose config` completed successfully.
-- `docker compose up -d --build` rebuilt the PHP image and started/recreated the existing services without deleting volumes.
-- `php_app` and `mysql_db` are both running; PHP is published on port 8080.
-- `GET http://localhost:8080/` returned `200 OK`.
-- `GET http://localhost:8080/assets/css/style.css` returned `200 OK` with `text/css`.
-- `GET http://localhost:8080/assets/js/main.js` returned `200 OK` with `text/javascript`.
-- Generated Docker HTML uses `/assets/...`, `/search.php`, `/category.php`, `/login.php`, and `/` rather than `/news-portal/...`.
-- `GET /search.php?q=test` and `GET /login.php` returned `200 OK`.
-- Unauthenticated `GET /admin/dashboard.php` returned `302 Found` with `Location: /login.php`, confirming the Docker-aware redirect path.
-- Every PHP file passed `php -l` in the PHP 8.2 container.
-- Current Apache request logs show 200 responses for `/`, the CSS, and the JavaScript. The earlier status-255 PHP container exit did not recur during rebuild or testing.
+In XAMPP, the project runs at:
 
-### XAMPP
+`http://localhost/news-portal/`
 
-- XAMPP was available locally with Apache 2.4.58 and PHP 8.1.25.
-- `GET http://localhost/news-portal/` returned `200 OK`.
-- The XAMPP page generated `/news-portal/assets/...`, `/news-portal/search.php`, category/navigation links, and `/news-portal/login.php` correctly.
-- The CSS and JavaScript both returned `200 OK` from `/news-portal/assets/...`.
-- Unauthenticated `/news-portal/admin/dashboard.php` returned `302 Found` with `Location: /news-portal/login.php`.
+In Docker, it runs at:
 
-### Coverage and limitations
+`http://localhost:8080/`
 
-Static asset URLs, public navigation, search action, login page, administration authentication redirect, upload URL generation, and all PHP syntax were verified. Administration templates and mutations were inspected and consistently use the shared helper; no administrator password was supplied, so authenticated create/edit form submission was not performed. The current database contains no published articles, so a real uploaded article image was not available for an HTTP request, but `imageUrl()` was verified in source to use the corrected helper.
+The application was generating links containing `/news-portal/`, which did not match the Docker directory structure.
 
-The only log warning observed is Apache's non-fatal `ServerName` warning. It does not affect the application or asset loading. No unresolved compatibility error remains.
+To solve this issue, I updated the `url()` function in `includes/functions.php` so it could detect the correct base path automatically.
 
-## Commands used
+After this change, the CSS and JavaScript files loaded correctly in both XAMPP and Docker.
 
-```text
-rg --files
-rg -n ...
-docker compose config
-docker compose ps -a
-docker compose up -d --build
-docker compose exec -T app sh -lc "find . -name '*.php' -print0 | xargs -0 -n1 php -l"
-curl.exe ... http://localhost:8080/
-curl.exe ... http://localhost:8080/assets/css/style.css
-curl.exe ... http://localhost:8080/assets/js/main.js
-curl.exe ... http://localhost:8080/search.php?q=test
-curl.exe ... http://localhost:8080/login.php
-curl.exe ... http://localhost:8080/admin/dashboard.php
-curl.exe ... http://localhost/news-portal/
-curl.exe ... http://localhost/news-portal/assets/css/style.css
-curl.exe ... http://localhost/news-portal/assets/js/main.js
-curl.exe ... http://localhost/news-portal/admin/dashboard.php
-docker compose logs --no-color ...
-```
+## 2. Lessons I Learned from Git and GitHub
 
+During this assignment, I learned the difference between using Git locally and uploading my work to GitHub.
+
+Some important commands I learned were:
+
+- `git init` to initialize a Git repository.
+- `git status` to check the status of my files.
+- `git add` to stage changes.
+- `git commit` to save changes locally.
+- `git push` to upload commits to GitHub.
+- `git log --oneline` to view my commit history.
+
+I also learned that commit messages should clearly explain the changes made to the project.
+
+Another important lesson was using `.gitignore` to prevent private files, such as `.env`, from being uploaded to GitHub.
+
+I understood that Docker volumes are useful for keeping database data even when containers are stopped or recreated.
+
+## 3. Conclusion
+
+This assignment helped me understand how to run a PHP application and a MySQL database using Docker containers.
+
+I also learned how to solve basic Docker problems, manage my project with Git, and publish it on GitHub with clear documentation.
+
+Most importantly, I learned how to prepare a project so another developer can download and run it by following the instructions in the README.
