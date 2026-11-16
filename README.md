@@ -1,87 +1,148 @@
-# بوابة الأخبار — News Portal
+News Portal Project
 
-نظام إدارة أخبار عربي متكامل مبني بـ PHP الأصلي وPDO وMySQL وBootstrap 5 RTL. يشمل موقعًا عامًا متجاوبًا، غرفة أخبار بصلاحيات متعددة، إدارة المحتوى والتصنيفات والمستخدمين والإعدادات، ورفع صور آمن.
+## 1. Project Overview
 
-## المتطلبات
+This project is a simple website for managing and publishing news in Arabic. It was developed using PHP and MySQL.
 
-- XAMPP مع Apache وMySQL/MariaDB وPHP 8.1 أو أحدث
-- امتدادات PHP: `pdo_mysql`, `mbstring`, `fileinfo`
-- قاعدة البيانات الموجودة مسبقًا: `news_portal_db`
-- اتصال بالإنترنت لتحميل Bootstrap Icons وخط Cairo من CDN
+The website allows visitors to browse news and search for it by title or category. It also includes a dashboard that can be used to manage news, categories, and users.
 
-## التشغيل على XAMPP
+In this assignment, I used Docker to run the website and the database in separate containers, so the project can run on other computers without needing to install PHP and MySQL separately.
 
-1. ضع المشروع في `C:\xampp\htdocs\news-portal`.
-2. شغّل Apache وMySQL من لوحة XAMPP.
-3. استورد `database/news_portal_db.sql` في قاعدة `news_portal_db` عند التثبيت الجديد فقط.
-4. افتح `http://localhost/news-portal/setup-admin.php` من الجهاز المحلي وأنشئ أول مدير. تتطلب كلمة المرور 12 حرفًا على الأقل، وحرفًا كبيرًا وصغيرًا ورقمًا.
-5. بعد الإنشاء تُغلق صفحة الإعداد تلقائيًا. سجّل الدخول من `http://localhost/news-portal/login.php`.
+## 2. Technologies Used
 
-الموقع العام: `http://localhost/news-portal/`  
-لوحة التحكم: `http://localhost/news-portal/admin/dashboard.php`
+- **PHP 8.2:** For programming the website's functions and interacting with the database.
+- **MySQL 8.0:** For storing news, users, and categories.
+- **Apache:** For running the website on a web server.
+- **HTML, CSS, and JavaScript:** For building the user interface.
+- **Docker:** For running the application inside a container.
+- **Docker Compose:** For running the website and the database together.
+- **Git and GitHub:** For version control and storing the code.
 
-يكتشف التطبيق مسار المجلد تلقائيًا، ولذلك يعمل من مجلد XAMPP الفرعي ومن جذر خادم Docker دون تعديل المصدر.
+## 3. Requirements
 
-## التشغيل عبر Docker
+To run the project using Docker, we need:
 
-1. انسخ `.env.example` إلى `.env`.
-2. استبدل جميع قيم `CHANGE_ME` بكلمات مرور قوية ومختلفة، مع إبقاء `DB_USER` مطابقًا لـ `MYSQL_APP_USER` و`DB_PASS` مطابقًا لـ `MYSQL_APP_PASSWORD` في التثبيت الجديد.
-3. شغّل `docker compose up -d --build`.
-4. افتح `http://localhost:8080/setup-admin.php` وأنشئ أول مدير، ثم سجّل الدخول.
+- Docker Desktop
+- Git
+- An internet connection to download Docker images and the external libraries used in the design.
 
-يُنشئ MySQL مستخدم التطبيق المخصص فقط عند تهيئة volume جديد. تغيير القيم في `.env` لا يغيّر بيانات الدخول داخل volume مهيأ مسبقًا. لا تحذف volume لقاعدة مستخدمة؛ نفّذ تدوير بيانات الدخول داخل MySQL أولًا عند الحاجة.
+We do not need to install XAMPP when running the project using Docker.
 
-تُضمّن ملفات التطبيق داخل الصورة، بينما تحفظ named volumes قاعدة البيانات والصور المرفوعة. منفذ الويب مربوط بـ `127.0.0.1` افتراضيًا لحصر صفحة الإعداد على الجهاز المحلي.
+## 4. Downloading and Running the Project
 
-## إعداد قاعدة البيانات
-
-الإعدادات الافتراضية موجودة في `config/database.php`:
-
-- المضيف: `127.0.0.1`
-- المنفذ: `3306`
-- القاعدة: `news_portal_db`
-- المستخدم: `root`
-- كلمة المرور: فارغة
-
-يمكن تجاوزها دون تعديل الكود عبر متغيرات البيئة: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`. التطبيق لا ينشئ أو يعدّل بنية الجداول تلقائيًا. ملف `.env` المحلي مستبعد من Git، وتوجد القيم التوضيحية الآمنة في `.env.example`.
-
-## الأدوار والصلاحيات
-
-- **المدير:** كل الأخبار، التصنيفات، المستخدمون، الإعدادات، النشر والاستعادة.
-- **المحرر:** إدارة المحتوى والتصنيفات والنشر والاستعادة، دون المستخدمين أو الإعدادات.
-- **الكاتب:** إنشاء مسودات، تعديل محتواه غير المنشور، وإرساله للمراجعة. لا يمكنه النشر.
-
-يُعطى التسجيل العام دور `author` فقط، وهو مغلق افتراضيًا ويمكن للمدير تفعيله من الإعدادات.
-
-## بنية المشروع
-
-```text
-config/          اتصال PDO
-includes/        الدوال والمصادقة والقالب العام
-admin/           لوحة الإدارة والعمليات
-admin/includes/  قالب الإدارة ونموذج الخبر المشترك
-assets/          CSS وJavaScript
-uploads/         الصور المرفوعة مع منع تنفيذ PHP
-scripts/         أدوات صيانة محلية تعمل من سطر الأوامر فقط
-database/        مخطط تهيئة عام وآمن للتثبيت الجديد
+**Step One: Download the project from GitHub**
+```bash
+git clone https://github.com/reemShorafa/news-portal-php.git
+cd news-portal-php
 ```
 
-## المزايا الأمنية
+**Step Two: Prepare the configuration file**
 
-استعلامات PDO محضّرة، تجزئة كلمات المرور، CSRF لكل عمليات التعديل، تجديد جلسة الدخول، تحقق صلاحيات من الخادم، تعقيم HTML، تهريب المخرجات، حذف منطقي، ورفع صور يتحقق من MIME والحجم ويستخدم أسماء عشوائية.
+We copy the `.env.example` file to a new file named `.env`, then review the database configuration values and set suitable local passwords.
 
-## استكشاف المشاكل
-
-- رسالة تعذر الاتصال: شغّل MySQL، وتحقق من اسم القاعدة وبيانات `config/database.php`.
-- خطأ `could not find driver`: فعّل `extension=pdo_mysql` في `php.ini` ثم أعد Apache.
-- الصور لا تُرفع: تحقق من صلاحية الكتابة على `uploads/` ومن حدود `upload_max_filesize` و`post_max_size` في `php.ini` (ينبغي أن تكون أكبر من 5M).
-- تنسيق CDN لا يظهر: تحقق من الاتصال بالإنترنت، أو نزّل المكتبات محليًا وعدّل روابط القالبين.
-- إعداد المدير مغلق: يوجد مدير بالفعل؛ هذا سلوك أمني مقصود.
-
-## فحوص التطوير
-
-لفحص الصياغة من PowerShell:
-
-```powershell
-Get-ChildItem -Recurse -Filter *.php | ForEach-Object { C:\xampp\php\php.exe -l $_.FullName }
+In PowerShell:
 ```
+Copy-Item .env.example .env
+```
+
+**Step Three: Build and run the project**
+```
+docker compose up -d --build
+```
+
+This command builds the application image and runs two containers: one for PHP and Apache, and the other for the MySQL database.
+
+**Step Four: Open the website**
+
+After running the containers, we open the following link in the browser:
+
+[http://localhost:8080](http://localhost:8080)
+
+When running the project for the first time with a new database, we create the administrator account from this page:
+
+[http://localhost:8080/setup-admin.php](http://localhost:8080/setup-admin.php)
+
+After creating the administrator account, we can log in and use the dashboard.
+
+## 5. Project Configuration
+
+The project uses the `.env` file to define the database connection settings.
+
+The settings include the database server address, database name, username, and password.
+
+The website runs locally on port `8080`, while the PHP container connects to the MySQL database through Docker's internal network.
+
+The `.env` file is not uploaded to GitHub because it contains settings specific to the runtime environment.
+
+## 6. How Can the Project Be Tested?
+
+After running the project, we can make sure it works by:
+
+1. Opening the home page and making sure the website interface appears.
+2. Creating the administrator account when running the project for the first time.
+3. Logging in to the dashboard.
+4. Adding a new news article and selecting its category.
+5. Editing or deleting the news article.
+6. Opening the home page and making sure the published news appears.
+7. Trying to search for a news article.
+
+The following command can also be used to check the status of the containers:
+```
+docker compose ps
+```
+
+If the application container appears with the status `Up` and the database appears with the status `Up (healthy)`, this indicates that the containers are running and the database health check succeeded.
+
+## 7. Stopping and Cleaning Up the Project
+
+To stop the containers:
+```
+docker compose stop
+```
+
+To run them again:
+```
+docker compose start
+```
+
+To stop and remove the containers while keeping the stored data:
+```
+docker compose down
+```
+
+The following command removes the containers and the project's Volumes, including the data stored inside them:
+```
+docker compose down -v
+```
+
+The last command should be used carefully because it may cause the database and uploaded images to be lost.
+
+## 8. Project File Organization
+
+The project contains the following main folders and files:
+
+- `admin/`: Dashboard pages.
+- `assets/`: CSS and JavaScript files.
+- `config/`: Database connection settings.
+- `database/`: The SQL file for creating the tables and default data.
+- `includes/`: Shared files and PHP functions.
+- `scripts/`: Helper scripts for managing the project.
+- `uploads/`: Images uploaded to the website.
+- `docs/`: Technical notes and screenshots that show the project running.
+- `Dockerfile`: Instructions for building the application image.
+- `docker-compose.yml`: Configuration for running the application and database together.
+- `.env.example`: An environment configuration template.
+
+## 9. Project Source
+
+This project was prepared for an Operating Systems Lab assignment. A complete open-source project was not used as its foundation.
+
+The project uses some external design libraries, such as Bootstrap, Bootstrap Icons, and Google Fonts.
+
+## 10. Additional Notes
+
+While implementing the project, I faced a problem loading the CSS and JavaScript files when running it inside Docker because the file paths differ between XAMPP and Docker.
+
+The method used to create the links was modified so that the files work correctly in both environments.
+
+The project was also tested with a new database to make sure that another developer can run it by following the steps in this file.
